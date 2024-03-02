@@ -792,7 +792,7 @@ func (c *Compiler) validateSchema(r *resource, v interface{}, vloc string) error
 	}
 
 	validate := func(meta *Schema) error {
-		return meta.validateValue(v, vloc)
+		return meta.validateValue(v, v, vloc)
 	}
 
 	meta := r.draft.meta
