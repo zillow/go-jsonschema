@@ -100,6 +100,50 @@ func NewCompiler() *Compiler {
 	}
 }
 
+// Clone returns a new compiler with a copy of the current compiler's
+// internal state.
+func (c *Compiler) Clone() *Compiler {
+	if c == nil {
+		return nil
+	}
+
+	clone := &Compiler{
+		Draft:              c.Draft,
+		ExtractAnnotations: c.ExtractAnnotations,
+		LoadURL:            c.LoadURL,
+		CompileRegex:       c.CompileRegex,
+		AssertFormat:       c.AssertFormat,
+		AssertContent:      c.AssertContent,
+		resources:          make(map[string]*resource),
+		Formats:            make(map[string]func(interface{}) bool),
+		Decoders:           make(map[string]func(string) ([]byte, error)),
+		MediaTypes:         make(map[string]func([]byte) error),
+		extensions:         make(map[string]extension),
+	}
+
+	for k, v := range c.resources {
+		clone.resources[k] = v
+	}
+
+	for k, v := range c.Formats {
+		clone.Formats[k] = v
+	}
+
+	for k, v := range c.Decoders {
+		clone.Decoders[k] = v
+	}
+
+	for k, v := range c.MediaTypes {
+		clone.MediaTypes[k] = v
+	}
+
+	for k, v := range c.extensions {
+		clone.extensions[k] = v
+	}
+
+	return clone
+}
+
 // AddResource adds in-memory resource to the compiler.
 //
 // Note that url must not have fragment
