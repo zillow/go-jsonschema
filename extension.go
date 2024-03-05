@@ -29,6 +29,11 @@ func (c *Compiler) RegisterExtension(name string, meta *Schema, ext ExtCompiler)
 	c.extensions[name] = extension{meta, ext}
 }
 
+// DeregisterExtension deregisters a previously registered extension.
+func (c *Compiler) DeregisterExtension(name string) {
+	delete(c.extensions, name)
+}
+
 // CompilerContext ---
 
 // CompilerContext provides additional context required in compiling for extension.
