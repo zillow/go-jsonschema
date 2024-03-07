@@ -194,6 +194,22 @@ func (c *Compiler) Compile(url string) (*Schema, error) {
 	return sch, err
 }
 
+// GetCompiledSchemas returns a map of all the schemas that have been compiled by the compiler so far.
+// This includes all the schemas which have been compiled using method Compile, as well as all the
+// schemas those compiled schemas had references to.
+// The map keys are the schema urls.
+func (c *Compiler) GetCompiledSchemas() map[string]*Schema {
+	compiledSchemas := map[string]*Schema{}
+
+	for _, resource := range c.resources {
+		if resource.schema != nil {
+			compiledSchemas[resource.url] = resource.schema
+		}
+	}
+
+	return compiledSchemas
+}
+
 func (c *Compiler) loadURL(url string) (io.ReadCloser, error) {
 	// check in metaschemas
 	u, meta := strings.CutPrefix(url, "http://json-schema.org/")
