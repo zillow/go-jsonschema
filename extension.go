@@ -29,6 +29,11 @@ func (c *Compiler) RegisterExtension(name string, meta *Schema, ext ExtCompiler)
 	c.extensions[name] = extension{meta, ext}
 }
 
+// DeregisterExtension deregisters a previously registered extension.
+func (c *Compiler) DeregisterExtension(name string) {
+	delete(c.extensions, name)
+}
+
 // CompilerContext ---
 
 // CompilerContext provides additional context required in compiling for extension.
@@ -68,11 +73,25 @@ func (ctx CompilerContext) CompileRef(ref string, refPath string, applicableOnSa
 	return ctx.c.compileRef(ctx.r, stack, refPath, ctx.res, ref)
 }
 
+// GetResourceSchema provides a pointer to the current resource's schema.
+//
+// Useful in cases where the extension needs to collect metadata about the current
+// target of the compilation, such as the absolute location of the resource's schema.
+func (ctx CompilerContext) GetResourceSchema() *Schema {
+	if ctx.res == nil {
+		return nil
+	}
+
+	return ctx.res.schema
+}
+
 // ValidationContext ---
 
 // ValidationContext provides additional context required in validating for extension.
 type ValidationContext struct {
 	result          validationResult
+	doc             interface{}
+	vloc            string
 	validate        func(sch *Schema, schPath string, v interface{}, vpath string) error
 	validateInplace func(sch *Schema, schPath string) error
 	validationError func(keywordPath string, format string, a ...interface{}) *ValidationError
@@ -106,6 +125,16 @@ func (ctx ValidationContext) Validate(s *Schema, spath string, v interface{}, vp
 // keywordPath is relative-json-pointer to keyword.
 func (ctx ValidationContext) Error(keywordPath string, format string, a ...interface{}) *ValidationError {
 	return ctx.validationError(keywordPath, format, a...)
+}
+
+// GetValueLocation returns the location of the currently validated value.
+func (ctx ValidationContext) GetValueLocation() string {
+	return ctx.vloc
+}
+
+// GetDoc returns the top document being validated.
+func (ctx ValidationContext) GetDoc() interface{} {
+	return ctx.doc
 }
 
 // Group is used by extensions to group multiple errors as causes to parent error.

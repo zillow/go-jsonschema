@@ -165,10 +165,10 @@ func (s *Schema) hasVocab(name string) bool {
 // returns InfiniteLoopError if it detects loop during validation.
 // returns InvalidJSONTypeError if it detects any non json value in v.
 func (s *Schema) Validate(v interface{}) (err error) {
-	return s.validateValue(v, "")
+	return s.validateValue(v, v, "")
 }
 
-func (s *Schema) validateValue(v interface{}, vloc string) (err error) {
+func (s *Schema) validateValue(doc interface{}, v interface{}, vloc string) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			switch r := r.(type) {
@@ -179,7 +179,7 @@ func (s *Schema) validateValue(v interface{}, vloc string) (err error) {
 			}
 		}
 	}()
-	if _, err := s.validate(nil, 0, "", v, vloc); err != nil {
+	if _, err := s.validate(nil, 0, "", doc, v, vloc); err != nil {
 		ve := ValidationError{
 			KeywordLocation:         "",
 			AbsoluteKeywordLocation: s.Location,
@@ -192,7 +192,7 @@ func (s *Schema) validateValue(v interface{}, vloc string) (err error) {
 }
 
 // validate validates given value v with this schema.
-func (s *Schema) validate(scope []schemaRef, vscope int, spath string, v interface{}, vloc string) (result validationResult, err error) {
+func (s *Schema) validate(scope []schemaRef, vscope int, spath string, doc interface{}, v interface{}, vloc string) (result validationResult, err error) {
 	validationError := func(keywordPath string, format string, a ...interface{}) *ValidationError {
 		return &ValidationError{
 			KeywordLocation:         keywordLocation(scope, keywordPath),
@@ -228,12 +228,12 @@ func (s *Schema) validate(scope []schemaRef, vscope int, spath string, v interfa
 		if vpath != "" {
 			vloc += "/" + vpath
 		}
-		_, err := sch.validate(scope, 0, schPath, v, vloc)
+		_, err := sch.validate(scope, 0, schPath, doc, v, vloc)
 		return err
 	}
 
 	validateInplace := func(sch *Schema, schPath string) error {
-		vr, err := sch.validate(scope, vscope, schPath, v, vloc)
+		vr, err := sch.validate(scope, vscope, schPath, doc, v, vloc)
 		if err == nil {
 			// update result
 			for pname := range result.unevalProps {
@@ -735,7 +735,7 @@ func (s *Schema) validate(scope []schemaRef, vscope int, spath string, v interfa
 	}
 
 	for _, ext := range s.Extensions {
-		if err := ext.Validate(ValidationContext{result, validate, validateInplace, validationError}, v); err != nil {
+		if err := ext.Validate(ValidationContext{result, doc, vloc, validate, validateInplace, validationError}, v); err != nil {
 			errors = append(errors, err)
 		}
 	}

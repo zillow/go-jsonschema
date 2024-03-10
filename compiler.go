@@ -100,6 +100,50 @@ func NewCompiler() *Compiler {
 	}
 }
 
+// Clone returns a new compiler with a copy of the current compiler's
+// internal state.
+func (c *Compiler) Clone() *Compiler {
+	if c == nil {
+		return nil
+	}
+
+	clone := &Compiler{
+		Draft:              c.Draft,
+		ExtractAnnotations: c.ExtractAnnotations,
+		LoadURL:            c.LoadURL,
+		CompileRegex:       c.CompileRegex,
+		AssertFormat:       c.AssertFormat,
+		AssertContent:      c.AssertContent,
+		resources:          make(map[string]*resource),
+		Formats:            make(map[string]func(interface{}) bool),
+		Decoders:           make(map[string]func(string) ([]byte, error)),
+		MediaTypes:         make(map[string]func([]byte) error),
+		extensions:         make(map[string]extension),
+	}
+
+	for k, v := range c.resources {
+		clone.resources[k] = v
+	}
+
+	for k, v := range c.Formats {
+		clone.Formats[k] = v
+	}
+
+	for k, v := range c.Decoders {
+		clone.Decoders[k] = v
+	}
+
+	for k, v := range c.MediaTypes {
+		clone.MediaTypes[k] = v
+	}
+
+	for k, v := range c.extensions {
+		clone.extensions[k] = v
+	}
+
+	return clone
+}
+
 // AddResource adds in-memory resource to the compiler.
 //
 // Note that url must not have fragment
@@ -148,6 +192,22 @@ func (c *Compiler) Compile(url string) (*Schema, error) {
 		err = &SchemaError{url, err}
 	}
 	return sch, err
+}
+
+// GetCompiledSchemas returns a map of all the schemas that have been compiled by the compiler so far.
+// This includes all the schemas which have been compiled using method Compile, as well as all the
+// schemas those compiled schemas had references to.
+// The map keys are the schema urls.
+func (c *Compiler) GetCompiledSchemas() map[string]*Schema {
+	compiledSchemas := map[string]*Schema{}
+
+	for _, resource := range c.resources {
+		if resource.schema != nil {
+			compiledSchemas[resource.url] = resource.schema
+		}
+	}
+
+	return compiledSchemas
 }
 
 func (c *Compiler) loadURL(url string) (io.ReadCloser, error) {
@@ -792,7 +852,7 @@ func (c *Compiler) validateSchema(r *resource, v interface{}, vloc string) error
 	}
 
 	validate := func(meta *Schema) error {
-		return meta.validateValue(v, vloc)
+		return meta.validateValue(v, v, vloc)
 	}
 
 	meta := r.draft.meta
