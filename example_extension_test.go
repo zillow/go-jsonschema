@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/santhosh-tekuri/jsonschema/v5"
+	"github.com/zillow/go-jsonschema/v5"
 )
 
 var powerOfMeta = jsonschema.MustCompileString("powerOf.json", `{

@@ -1,4 +1,4 @@
-module github.com/santhosh-tekuri/jsonschema/v5
+module github.com/zillow/go-jsonschema/v5
 
 go 1.21
 

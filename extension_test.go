@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/santhosh-tekuri/jsonschema/v5"
+	"github.com/zillow/go-jsonschema/v5"
 )
 
 func TestPowerOfExt(t *testing.T) {

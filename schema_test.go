@@ -17,8 +17,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/santhosh-tekuri/jsonschema/v5"
-	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
+	"github.com/zillow/go-jsonschema/v5"
+	_ "github.com/zillow/go-jsonschema/v5/httploader"
 )
 
 var skipTests = map[string]map[string][]string{
@@ -583,7 +583,7 @@ func toFileURL(path string) string {
 	return u.String()
 }
 
-// TestPanic tests https://github.com/santhosh-tekuri/jsonschema/issues/18
+// TestPanic tests https://github.com/zillow/go-jsonschema/issues/18
 func TestPanic(t *testing.T) {
 	schema_d := `
 	{

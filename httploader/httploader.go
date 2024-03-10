@@ -5,7 +5,7 @@
 //
 // To use httploader, link this package into your program:
 //
-//	import _ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
+//	import _ "github.com/zillow/go-jsonschema/v5/httploader"
 package httploader
 
 import (
@@ -13,7 +13,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/santhosh-tekuri/jsonschema/v5"
+	"github.com/zillow/go-jsonschema/v5"
 )
 
 // Client is the default HTTP Client used to Get the resource.
