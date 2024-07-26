@@ -92,6 +92,7 @@ type ValidationContext struct {
 	result          validationResult
 	doc             interface{}
 	vloc            string
+	parent          ParentDescriptor
 	validate        func(sch *Schema, schPath string, v interface{}, vpath string) error
 	validateInplace func(sch *Schema, schPath string) error
 	validationError func(keywordPath string, format string, a ...interface{}) *ValidationError
@@ -135,6 +136,11 @@ func (ctx ValidationContext) GetValueLocation() string {
 // GetDoc returns the top document being validated.
 func (ctx ValidationContext) GetDoc() interface{} {
 	return ctx.doc
+}
+
+// GetParent returns the parent descriptor of the value being validated.
+func (ctx ValidationContext) GetParent() ParentDescriptor {
+	return ctx.parent
 }
 
 // Group is used by extensions to group multiple errors as causes to parent error.

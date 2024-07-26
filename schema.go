@@ -104,6 +104,19 @@ type Schema struct {
 	Extensions map[string]ExtSchema
 }
 
+type ParentDescriptor map[string]interface{}
+
+func NewParentDescriptor(parent ParentDescriptor, value interface{}) ParentDescriptor {
+	pd := ParentDescriptor{}
+
+	if parent != nil {
+		pd["parent"] = parent
+		pd["value"] = value
+	}
+
+	return pd
+}
+
 func (s *Schema) String() string {
 	return s.Location
 }
@@ -165,10 +178,10 @@ func (s *Schema) hasVocab(name string) bool {
 // returns InfiniteLoopError if it detects loop during validation.
 // returns InvalidJSONTypeError if it detects any non json value in v.
 func (s *Schema) Validate(v interface{}) (err error) {
-	return s.validateValue(v, v, "")
+	return s.validateValue(v, v, "", NewParentDescriptor(nil, nil))
 }
 
-func (s *Schema) validateValue(doc interface{}, v interface{}, vloc string) (err error) {
+func (s *Schema) validateValue(doc interface{}, v interface{}, vloc string, parent ParentDescriptor) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			switch r := r.(type) {
@@ -179,7 +192,7 @@ func (s *Schema) validateValue(doc interface{}, v interface{}, vloc string) (err
 			}
 		}
 	}()
-	if _, err := s.validate(nil, 0, "", doc, v, vloc); err != nil {
+	if _, err := s.validate(nil, 0, "", doc, v, vloc, parent); err != nil {
 		ve := ValidationError{
 			KeywordLocation:         "",
 			AbsoluteKeywordLocation: s.Location,
@@ -192,7 +205,7 @@ func (s *Schema) validateValue(doc interface{}, v interface{}, vloc string) (err
 }
 
 // validate validates given value v with this schema.
-func (s *Schema) validate(scope []schemaRef, vscope int, spath string, doc interface{}, v interface{}, vloc string) (result validationResult, err error) {
+func (s *Schema) validate(scope []schemaRef, vscope int, spath string, doc interface{}, v interface{}, vloc string, parent ParentDescriptor) (result validationResult, err error) {
 	validationError := func(keywordPath string, format string, a ...interface{}) *ValidationError {
 		return &ValidationError{
 			KeywordLocation:         keywordLocation(scope, keywordPath),
@@ -202,6 +215,7 @@ func (s *Schema) validate(scope []schemaRef, vscope int, spath string, doc inter
 		}
 	}
 
+	thisValue := v
 	sref := schemaRef{spath, s, false}
 	if err := checkLoop(scope[len(scope)-vscope:], sref); err != nil {
 		panic(err)
@@ -225,15 +239,18 @@ func (s *Schema) validate(scope []schemaRef, vscope int, spath string, doc inter
 
 	validate := func(sch *Schema, schPath string, v interface{}, vpath string) error {
 		vloc := vloc
+		subParent := parent
+
 		if vpath != "" {
 			vloc += "/" + vpath
+			subParent = NewParentDescriptor(parent, thisValue)
 		}
-		_, err := sch.validate(scope, 0, schPath, doc, v, vloc)
+		_, err := sch.validate(scope, 0, schPath, doc, v, vloc, subParent)
 		return err
 	}
 
 	validateInplace := func(sch *Schema, schPath string) error {
-		vr, err := sch.validate(scope, vscope, schPath, doc, v, vloc)
+		vr, err := sch.validate(scope, vscope, schPath, doc, v, vloc, parent)
 		if err == nil {
 			// update result
 			for pname := range result.unevalProps {
@@ -735,7 +752,7 @@ func (s *Schema) validate(scope []schemaRef, vscope int, spath string, doc inter
 	}
 
 	for _, ext := range s.Extensions {
-		if err := ext.Validate(ValidationContext{result, doc, vloc, validate, validateInplace, validationError}, v); err != nil {
+		if err := ext.Validate(ValidationContext{result, doc, vloc, parent, validate, validateInplace, validationError}, v); err != nil {
 			errors = append(errors, err)
 		}
 	}
