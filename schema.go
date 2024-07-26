@@ -107,10 +107,14 @@ type Schema struct {
 type ParentDescriptor map[string]interface{}
 
 func NewParentDescriptor(parent ParentDescriptor, value interface{}) ParentDescriptor {
-	return ParentDescriptor{
-		"parent": parent,
-		"value":  value,
+	pd := ParentDescriptor{}
+
+	if parent != nil {
+		pd["parent"] = parent
+		pd["value"] = value
 	}
+
+	return pd
 }
 
 func (s *Schema) String() string {
