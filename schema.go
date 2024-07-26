@@ -104,9 +104,13 @@ type Schema struct {
 	Extensions map[string]ExtSchema
 }
 
-type ParentDescriptor struct {
-	parent *ParentDescriptor
-	value  interface{}
+type ParentDescriptor map[string]interface{}
+
+func NewParentDescriptor(parent ParentDescriptor, value interface{}) ParentDescriptor {
+	return ParentDescriptor{
+		"parent": parent,
+		"value":  value,
+	}
 }
 
 func (s *Schema) String() string {
@@ -170,7 +174,7 @@ func (s *Schema) hasVocab(name string) bool {
 // returns InfiniteLoopError if it detects loop during validation.
 // returns InvalidJSONTypeError if it detects any non json value in v.
 func (s *Schema) Validate(v interface{}) (err error) {
-	return s.validateValue(v, v, "", ParentDescriptor{})
+	return s.validateValue(v, v, "", NewParentDescriptor(nil, nil))
 }
 
 func (s *Schema) validateValue(doc interface{}, v interface{}, vloc string, parent ParentDescriptor) (err error) {
@@ -235,11 +239,7 @@ func (s *Schema) validate(scope []schemaRef, vscope int, spath string, doc inter
 
 		if vpath != "" {
 			vloc += "/" + vpath
-			subParent = ParentDescriptor{
-				parent: &parent,
-				value:  thisValue,
-			}
-
+			subParent = NewParentDescriptor(parent, thisValue)
 		}
 		_, err := sch.validate(scope, 0, schPath, doc, v, vloc, subParent)
 		return err
