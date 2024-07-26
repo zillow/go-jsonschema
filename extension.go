@@ -138,7 +138,7 @@ func (ctx ValidationContext) GetDoc() interface{} {
 	return ctx.doc
 }
 
-// GetDoc returns the parent descriptor of the value being validated.
+// GetParent returns the parent descriptor of the value being validated.
 func (ctx ValidationContext) GetParent() ParentDescriptor {
 	return ctx.parent
 }
