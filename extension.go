@@ -91,7 +91,7 @@ func (ctx CompilerContext) GetResourceSchema() *Schema {
 
 // ValidationContext provides additional context required in validating for extension.
 type ValidationContext struct {
-	ctx             context.Context
+	externalContext context.Context
 	result          validationResult
 	doc             interface{}
 	vloc            string
@@ -144,6 +144,11 @@ func (ctx ValidationContext) GetDoc() interface{} {
 // GetParent returns the parent descriptor of the value being validated.
 func (ctx ValidationContext) GetParent() ParentDescriptor {
 	return ctx.parent
+}
+
+// GetExternalContext returns the external context supplied by user.
+func (ctx ValidationContext) GetExternalContext() context.Context {
+	return ctx.externalContext
 }
 
 // Group is used by extensions to group multiple errors as causes to parent error.
