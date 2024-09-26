@@ -1,6 +1,7 @@
 package jsonschema
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -852,7 +853,7 @@ func (c *Compiler) validateSchema(r *resource, v interface{}, vloc string) error
 	}
 
 	validate := func(meta *Schema) error {
-		return meta.validateValue(v, v, vloc, NewParentDescriptor(nil, nil))
+		return meta.validateValue(context.TODO(), v, v, vloc, NewParentDescriptor(nil, nil))
 	}
 
 	meta := r.draft.meta
