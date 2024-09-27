@@ -1,5 +1,7 @@
 package jsonschema
 
+import "context"
+
 // ExtCompiler compiles custom keyword(s) into ExtSchema.
 type ExtCompiler interface {
 	// Compile compiles the custom keywords in schema m and returns its compiled representation.
@@ -89,6 +91,7 @@ func (ctx CompilerContext) GetResourceSchema() *Schema {
 
 // ValidationContext provides additional context required in validating for extension.
 type ValidationContext struct {
+	externalContext context.Context
 	result          validationResult
 	doc             interface{}
 	vloc            string
@@ -141,6 +144,11 @@ func (ctx ValidationContext) GetDoc() interface{} {
 // GetParent returns the parent descriptor of the value being validated.
 func (ctx ValidationContext) GetParent() ParentDescriptor {
 	return ctx.parent
+}
+
+// GetExternalContext returns the external context supplied by user.
+func (ctx ValidationContext) GetExternalContext() context.Context {
+	return ctx.externalContext
 }
 
 // Group is used by extensions to group multiple errors as causes to parent error.
